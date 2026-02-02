@@ -62,7 +62,7 @@ export class Brain {
 			}
 		}
 
-		for (const activity of this.activeActivities.values()) {
+		for (const [, activity] of this.activeActivities) {
 			activity.tick(this.owner, this, dt);
 		}
 	}

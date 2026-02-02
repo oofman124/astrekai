@@ -1,16 +1,16 @@
 export interface RBXThread<TArgs extends Array<unknown>> {
-	name: string;
-	stepEvent: RBXScriptSignal;
-	connection: RBXScriptConnection;
-	completed: boolean;
-	lastStepTime: number;
-	rate: number;
-	alive: boolean;
-	enabled: boolean;
-	stepFunction: (...args: TArgs) => void;
-	step: () => void;
-	setEnabled: (state: boolean) => void;
-	destroy: () => void;
+    name: string;
+    stepEvent: RBXScriptSignal;
+    connection: RBXScriptConnection;
+    completed: boolean;
+    lastStepTime: number;
+    rate: number;
+    alive: boolean;
+    enabled: boolean;
+    stepFunction: (...args: TArgs) => void;
+    step: (...args: TArgs) => void;
+    setEnabled: (state: boolean) => void;
+    destroy: () => void;
 }
 
 export class Thread<TArgs extends Array<unknown>> implements RBXThread<TArgs> {
@@ -62,28 +62,29 @@ export class Thread<TArgs extends Array<unknown>> implements RBXThread<TArgs> {
 		return thread;
 	}
 
-	public step(): void {
-		this.lastStepTime = time();
-		this.completed = false;
-		this.stepFunction();
-		this.completed = true;
-	}
+	public step(...args: TArgs): void {
+        this.lastStepTime = time();
+        this.completed = false;
+        this.stepFunction(...args);
+        this.completed = true;
+    }
 
 	public setEnabled(state: boolean): void {
 		this.enabled = state;
 	}
 
 	public destroy(): void {
-		this.alive = false;
-		this.connection.Disconnect();
-		const index = Thread.threads.indexOf(this as RBXThread<Array<unknown>>);
-		if (index >= 0) {
-			Thread.threads.remove(index + 1);
-		}
-		for (const [key] of pairs(this)) {
-			(this as Record<string, unknown>)[key as string] = undefined;
-		}
-	}
+        this.alive = false;
+        this.connection.Disconnect();
+        // find index by name to avoid unsafe cast/indexOf issues
+        const index = Thread.threads.findIndex((t) => t.name === this.name);
+        if (index >= 0) {
+            Thread.threads.remove(index + 1);
+        }
+        for (const [key] of pairs(this)) {
+            (this as Record<string, unknown>)[key as string] = undefined;
+        }
+    }
 }
 
 export function findThread(name: string): RBXThread<Array<unknown>> | undefined {
