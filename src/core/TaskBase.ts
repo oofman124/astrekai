@@ -1,6 +1,9 @@
 import type { Brain } from "./Brain";
 
 export type Status = "IDLE" | "RUNNING" | "STOPPED" | "COMPLETE";
+export type StepResult = "AGAIN" | "COMPLETE" | "REDO" | "FAILED";
+
+
 
 export class TaskBase {
 	public readonly name: string;

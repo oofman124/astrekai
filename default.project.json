@@ -5,15 +5,31 @@
 		"**/tsconfig.json"
 	],
 	"tree": {
-		"$path": "out",
-		"include": {
-			"$path": "include",
-			"node_modules": {
-				"$className": "Folder",
-				"@rbxts": {
-					"$path": "node_modules/@rbxts"
+        "$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"include": {
+				"$path": "include",
+				"node_modules": {
+					"$className": "Folder",
+					"@rbxts": {
+						"$path": "node_modules/@rbxts"
+					}
 				}
-			}
+			},
+            "AstrekAICore": {
+                "$className": "Folder",
+                "$path": "out/core"
+            },
+            "Libraries": {
+                "$className": "Folder",
+                "$path": "out/lib"
+            },
+            "Stuff": {
+                "$className": "Folder",
+                "$path": "out/roblox"
+            }
+
 		}
 	}
 }

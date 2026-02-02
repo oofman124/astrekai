@@ -1,16 +1,17 @@
 export interface RBXThread<TArgs extends Array<unknown>> {
-    name: string;
-    stepEvent: RBXScriptSignal;
-    connection: RBXScriptConnection;
-    completed: boolean;
-    lastStepTime: number;
-    rate: number;
-    alive: boolean;
-    enabled: boolean;
-    stepFunction: (...args: TArgs) => void;
-    step: (...args: TArgs) => void;
-    setEnabled: (state: boolean) => void;
-    destroy: () => void;
+	name: string;
+	stepEvent: RBXScriptSignal;
+	connection: RBXScriptConnection;
+	completed: boolean;
+	lastStepTime: number;
+	rate: number;
+	alive: boolean;
+	enabled: boolean;
+	stepFunction: (...args: TArgs) => void;
+
+	step(...args: TArgs): void;
+	setEnabled(state: boolean): void;
+	destroy(): void;
 }
 
 export class Thread<TArgs extends Array<unknown>> implements RBXThread<TArgs> {
@@ -19,11 +20,11 @@ export class Thread<TArgs extends Array<unknown>> implements RBXThread<TArgs> {
 	public name: string;
 	public stepEvent: RBXScriptSignal;
 	public connection: RBXScriptConnection;
-	public completed = true;
+	public completed: boolean = true;
 	public lastStepTime = time();
 	public rate: number;
-	public alive = true;
-	public enabled = true;
+	public alive: boolean = true;
+	public enabled: boolean = true;
 	public stepFunction: (...args: TArgs) => void;
 
 	private constructor(
@@ -37,12 +38,7 @@ export class Thread<TArgs extends Array<unknown>> implements RBXThread<TArgs> {
 		this.stepEvent = stepEvent;
 		this.stepFunction = stepFunction;
 		this.connection = stepEvent.Connect((...args: TArgs) => {
-			if (
-				this.completed &&
-				this.alive &&
-				this.enabled &&
-				time() - this.lastStepTime >= 1 / this.rate
-			) {
+			if (this.completed && this.alive && this.enabled && time() - this.lastStepTime >= 1 / this.rate) {
 				this.lastStepTime = time();
 				this.completed = false;
 				this.stepFunction(...args);
@@ -63,28 +59,27 @@ export class Thread<TArgs extends Array<unknown>> implements RBXThread<TArgs> {
 	}
 
 	public step(...args: TArgs): void {
-        this.lastStepTime = time();
-        this.completed = false;
-        this.stepFunction(...args);
-        this.completed = true;
-    }
+		this.lastStepTime = time();
+		this.completed = false;
+		this.stepFunction(...args);
+		this.completed = true;
+	}
 
 	public setEnabled(state: boolean): void {
 		this.enabled = state;
 	}
 
 	public destroy(): void {
-        this.alive = false;
-        this.connection.Disconnect();
-        // find index by name to avoid unsafe cast/indexOf issues
-        const index = Thread.threads.findIndex((t) => t.name === this.name);
-        if (index >= 0) {
-            Thread.threads.remove(index + 1);
-        }
-        for (const [key] of pairs(this)) {
-            (this as Record<string, unknown>)[key as string] = undefined;
-        }
-    }
+		if (!this.alive) return;
+
+		this.alive = false;
+		this.connection.Disconnect();
+
+		const index = Thread.threads.findIndex((t) => t.name === this.name);
+		if (index >= 0) {
+			Thread.threads.remove(index + 1);
+		}
+	}
 }
 
 export function findThread(name: string): RBXThread<Array<unknown>> | undefined {
@@ -95,7 +90,6 @@ export function findThread(name: string): RBXThread<Array<unknown>> | undefined 
 	}
 	return undefined;
 }
-
 export function removeThread(name: string): void {
 	for (let i = Thread.threads.size(); i >= 1; i -= 1) {
 		const thread = Thread.threads[i - 1];
