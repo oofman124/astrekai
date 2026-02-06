@@ -44,7 +44,6 @@ export class ActivityBase implements Activity {
 
 	public addTask(task: TaskBase): void {
         this.tasks.push(task);
-        // Use boolean comparator (roblox-ts/Luau Array.sort expects boolean)
         this.tasks.sort((a, b) => a.priority > b.priority);
     }
 
